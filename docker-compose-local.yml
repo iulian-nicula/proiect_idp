@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+    gateway:
+        image: mobylab/idp-laborator3-gateway
+        ports:
+            - 3000:80
+        environment:
+            BUSINESS_LOGIC_SERVICE_API_ROUTE: business-logic-service/api
+            NODE_ENV: development
+        networks:
+            - gateway-business
+  
+    business-logic-service:
+        image: mobylab/idp-laborator3-books
+        environment:
+            IO_SERVICE_API_ROUTE: io-service/api
+            NODE_ENV: development
+        networks:
+            - gateway-business
+            - business-io
+
+    io-service:
+        image: mobylab/idp-laborator3-io
+        environment:
+            PGUSER: admin
+            PGPASSWORD: admin
+            PGHOST: db
+            PGPORT: 5432
+            PGDATABASE: virtual_shop
+            NODE_ENV: development
+        networks:
+            - business-io
+            - io-database
+
+    db-service:
+        image: postgres:12
+        environment:
+            POSTGRES_DB: virtual_shop
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: admin
+        volumes:
+            - ./Database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+            - db-volume:/var/lib/postgresql/data
+        networks:
+            - io-database
+            - database-admin
+
+    adminer:
+        image: adminer
+        ports:
+            - 8080:8080
+        networks:
+            - database-admin
+
+volumes:
+    db-volume:
+
+networks:
+    gateway-business:
+    business-io:
+    io-database:
+    database-admin:
