@@ -1,0 +1,98 @@
+version: "3.8"
+
+services:
+    business-logic-service:
+        image: idp-business:latest
+        environment:
+            IO_SERVICE_API_ROUTE: io-service/api
+            NODE_ENV: development
+        deploy:
+            replicas: 1
+            placement:
+                max_replicas_per_node: 1
+            update_config:
+                order: start-first
+            rollback_config:
+                order: stop-first
+        networks:
+            - internal
+            - business-io
+
+    io-service:
+        image: idp-io:latest
+        environment:
+            PGUSER: admin
+            PGPASSWORD: admin
+            PGHOST: db
+            PGPORT: 5432
+            PGDATABASE: virtual_shop
+            NODE_ENV: development
+        deploy:
+            replicas: 1
+            placement:
+                max_replicas_per_node: 1
+            update_config:
+                order: start-first
+            rollback_config:
+                order: stop-first
+        networks:
+            - business-io
+            - io-database
+
+    db-service:
+        image: postgres:12
+        environment:
+            POSTGRES_DB: virtual_shop
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: admin
+        volumes:
+            - ./Database/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+            - db-volume:/var/lib/postgresql/data
+        deploy:
+            placement:
+                constraints: 
+                    - node.role == manager
+        networks:
+            - io-database
+            - database-admin
+
+    adminer:
+        image: adminer
+        ports:
+            - 8080:8080
+        networks:
+            - database-admin
+            - internal
+
+    kong:
+        image: kong:latest
+        environment:
+            KONG_DATABASE: 'off'
+            KONG_DECLARATIVE_CONFIG: /usr/local/kong/declarative/kong.yml
+            KONG_PROXY_ACCESS_LOG: /dev/stdout
+            KONG_ADMIN_ACCESS_LOG: /dev/stdout
+            KONG_PROXY_ERROR_LOG: /dev/stderr
+            KONG_ADMIN_ERROR_LOG: /dev/stderr
+            KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+        volumes:
+            - ./Kong:/usr/local/kong/declarative
+        ports:
+            - 8000:8000
+            - 8443:8443
+            - 8001:8001
+            - 8444:8444
+        deploy:
+            placement:
+                constraints: 
+                    [node.role == manager]
+        networks:
+            - internal
+
+volumes:
+    db-volume:
+
+networks:
+    business-io:
+    io-database:
+    database-admin:
+    internal:

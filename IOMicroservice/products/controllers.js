@@ -2,13 +2,13 @@ const Router = require('express').Router();
 
 const {
     getProductById,
-    getProductss,
+    getProducts,
     addProduct
 } = require('./services.js');
 
 Router.get('/', async (req, res) => {
     
-    const products = await getBooks();
+    const products = await getProducts();
 
     res.json(products);
 });
@@ -32,7 +32,7 @@ Router.post('/', async (req, res) => {
         price
     } = req.body;
 
-    const id = await addProcut(title, author, genre);
+    const id = await addProduct(name, category, price);
 
     res.json(id);
 });

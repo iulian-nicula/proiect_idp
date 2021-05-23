@@ -27,7 +27,7 @@ app.use((err, req, res, next) => {
       status = err.httpStatus;
       message = err.message;
     } else if (err.isAxiosError) {
-      return next(createError(err.response.status, err));
+      return next(createError(err.response.status, message));
     }
     return next(createError(status, message));
 });

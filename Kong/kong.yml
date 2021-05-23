@@ -1,0 +1,17 @@
+_format_version: "2.1"
+
+services:
+  - name: business-logic-service
+    url: http://proiect_business-logic-service/api
+    routes:
+      - name: business-logic-service-route
+        paths: 
+          - /api/virtual-shop
+          
+  - name: adminer
+    url: http://proiect_adminer:8080
+    routes:
+      - name: adminer-service
+        paths:
+          - /adminer
+

@@ -5,7 +5,7 @@ const {
 const getProducts = async () => {
     console.info(`Getting all products ...`);
 
-    const products = await query("SELECT id, title FROM virtual_shop");
+    const products = await query("SELECT name, category, price FROM virtual_shop");
 
     return products;
 };
